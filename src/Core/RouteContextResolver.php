@@ -10,6 +10,7 @@
 namespace Cline\Breadcrumbs\Core;
 
 use Cline\Breadcrumbs\Exceptions\MissingCurrentRouteNameException;
+use Cline\Breadcrumbs\Support\BreadcrumbParamResolver;
 use Illuminate\Container\Attributes\Singleton;
 use Illuminate\Routing\Router;
 
@@ -43,8 +44,7 @@ final readonly class RouteContextResolver
             MissingCurrentRouteNameException::forCurrentRoute(),
         );
 
-        /** @var array<string, mixed> $params */
-        $params = $route->parameters();
+        $params = BreadcrumbParamResolver::fromRoute($route);
 
         return new BreadcrumbContext($route->getName(), $params);
     }
