@@ -10,13 +10,15 @@
 use Cline\Breadcrumbs\Core\BreadcrumbContext;
 use Cline\Breadcrumbs\Support\BreadcrumbParamResolver;
 use Illuminate\Contracts\Routing\UrlRoutable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
+use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
 it('normalizes route parameters and skips locale by default', function (): void {
     $route = new Route(['GET'], '/{locale}/posts/{post}/{page}', static fn (): null => null);
-    $route->bind(Request::create('/en/posts/ignored/2', 'GET'));
+    $route->bind(Request::create('/en/posts/ignored/2', SymfonyRequest::METHOD_GET));
     $route->setParameter('post', new class() implements UrlRoutable
     {
         public function getRouteKey(): string
@@ -50,9 +52,21 @@ it('normalizes route parameters and skips locale by default', function (): void 
 it('resolves model values from breadcrumb context', function (): void {
     $context = new BreadcrumbContext('users.show', ['user' => 7]);
 
-    $resolved = BreadcrumbParamResolver::resolveModel($context, 'user', TestRouteBoundModel::class);
+    $modelClass = new class() extends Model
+    {
+        use HasFactory;
 
-    expect($resolved)->toBeInstanceOf(TestRouteBoundModel::class)
+        protected $guarded = [];
+
+        public function resolveRouteBinding($value, $field = null): mixed
+        {
+            return new self(['id' => $value]);
+        }
+    };
+
+    $resolved = BreadcrumbParamResolver::resolveModel($context, 'user', $modelClass::class);
+
+    expect($resolved)->toBeInstanceOf($modelClass::class)
         ->and($resolved->getRouteKey())->toBe(7);
 });
 
@@ -63,13 +77,3 @@ it('returns raw values when class is not an eloquent model', function (): void {
 
     expect($resolved)->toBe(7);
 });
-
-final class TestRouteBoundModel extends Model
-{
-    protected $guarded = [];
-
-    public function resolveRouteBinding($value, $field = null): mixed
-    {
-        return new self(['id' => $value]);
-    }
-}

@@ -19,6 +19,7 @@ use function is_float;
 use function is_int;
 use function is_string;
 use function is_subclass_of;
+use function resolve;
 
 /**
  * Shared parameter normalization helpers for route and context usage.
@@ -37,12 +38,10 @@ final class BreadcrumbParamResolver
 
         foreach ($route->parameterNames() as $parameterName) {
             /** @var string $parameterName */
-
             if (in_array($parameterName, $excluded, true)) {
                 continue;
             }
 
-            /** @var mixed $parameter */
             $parameter = $route->parameter($parameterName);
 
             if ($parameter === null) {
@@ -59,9 +58,11 @@ final class BreadcrumbParamResolver
                 continue;
             }
 
-            if (self::isSupportedScalar($parameter)) {
-                $parameters[$parameterName] = $parameter;
+            if (!self::isSupportedScalar($parameter)) {
+                continue;
             }
+
+            $parameters[$parameterName] = $parameter;
         }
 
         return $parameters;
@@ -80,7 +81,7 @@ final class BreadcrumbParamResolver
         }
 
         /** @var UrlRoutable $model */
-        $model = app($modelClass);
+        $model = resolve($modelClass);
         $resolved = $model->resolveRouteBinding($value, $model->getRouteKeyName());
 
         return $resolved ?? $value;
