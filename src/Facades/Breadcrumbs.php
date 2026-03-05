@@ -1,0 +1,55 @@
+<?php declare(strict_types=1);
+
+/**
+ * Copyright (C) Brian Faust
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Cline\Breadcrumbs\Facades;
+
+use Cline\Breadcrumbs\Core\BreadcrumbsManager;
+use Cline\Breadcrumbs\Core\BreadcrumbTrail;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Facade;
+
+/**
+ * Facade proxy for the breadcrumbs manager API.
+ *
+ * @phpstan-type BreadcrumbTrailItemPayload array{
+ *     label: string,
+ *     url: null|string,
+ *     current: bool,
+ *     meta: array<string, mixed>,
+ *     attributes: array<string, string>
+ * }
+ * @phpstan-type BreadcrumbJsonLdPayload array{
+ *     '@context': string,
+ *     '@type': string,
+ *     itemListElement: list<array{
+ *         '@type': string,
+ *         position: int,
+ *         name: string,
+ *         item?: string
+ *     }>
+ * }
+ *
+ * @method static list<BreadcrumbTrailItemPayload> asArray(?string $name = null, array<string, mixed> $params = [])
+ * @method static BreadcrumbJsonLdPayload          jsonLd(?string $name = null, array<string, mixed> $params = [])
+ * @method static View                             render(?string $name = null, array<string, mixed> $params = [], ?string $view = null)
+ * @method static JsonResponse                     toResponse(?string $name = null, array<string, mixed> $params = [], string $format = 'trail')
+ * @method static BreadcrumbTrail                  trail(?string $name = null, array<string, mixed> $params = [])
+ * @author Brian Faust <brian@cline.sh>
+ */
+final class Breadcrumbs extends Facade
+{
+    /**
+     * Get the service container binding key.
+     */
+    protected static function getFacadeAccessor(): string
+    {
+        return BreadcrumbsManager::class;
+    }
+}

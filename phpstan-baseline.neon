@@ -1,0 +1,283 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Class Cline\\Breadcrumbs\\Breadcrumbs has PHPDoc tag @method for method getCurrentRoute\(\) return type with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Breadcrumbs.php
+
+		-
+			message: '#^PHPDoc tag @method for method Cline\\Breadcrumbs\\Breadcrumbs\:\:generate\(\) return type contains generic class Illuminate\\Support\\Collection but does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Breadcrumbs.php
+
+		-
+			message: '#^PHPDoc tag @mixin contains invalid type Illuminate\\Support\\Traits\\Macroable\.$#'
+			identifier: mixin.trait
+			count: 1
+			path: src/Breadcrumbs.php
+
+		-
+			message: '#^Cannot call method setDocumentationLinks\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Exceptions/DuplicateBreadcrumbException.php
+
+		-
+			message: '#^Cannot call method setSolutionDescription\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Exceptions/DuplicateBreadcrumbException.php
+
+		-
+			message: '#^Method Cline\\Breadcrumbs\\Exceptions\\DuplicateBreadcrumbException\:\:getSolution\(\) should return Facade\\IgnitionContracts\\Solution but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Exceptions/DuplicateBreadcrumbException.php
+
+		-
+			message: '#^Parameter \#2 \.\.\.\$values of function sprintf expects bool\|float\|int\|string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Exceptions/DuplicateBreadcrumbException.php
+
+		-
+			message: '#^Parameter \#3 \$subject of static method Illuminate\\Support\\Str\:\:replaceFirst\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Exceptions/DuplicateBreadcrumbException.php
+
+		-
+			message: '#^Cannot call method setDocumentationLinks\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Exceptions/InvalidBreadcrumbException.php
+
+		-
+			message: '#^Cannot call method setSolutionDescription\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Exceptions/InvalidBreadcrumbException.php
+
+		-
+			message: '#^Method Cline\\Breadcrumbs\\Exceptions\\InvalidBreadcrumbException\:\:getSolution\(\) should return Facade\\IgnitionContracts\\Solution but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Exceptions/InvalidBreadcrumbException.php
+
+		-
+			message: '#^Parameter \#3 \$subject of static method Illuminate\\Support\\Str\:\:replaceFirst\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Exceptions/InvalidBreadcrumbException.php
+
+		-
+			message: '#^Binary operation "\." between ''\\'''' and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: src/Exceptions/UnnamedRouteException.php
+
+		-
+			message: '#^Binary operation "\." between mixed and '' /'' results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: src/Exceptions/UnnamedRouteException.php
+
+		-
+			message: '#^Cannot call method setDocumentationLinks\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Exceptions/UnnamedRouteException.php
+
+		-
+			message: '#^Cannot call method setSolutionDescription\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Exceptions/UnnamedRouteException.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: src/Exceptions/UnnamedRouteException.php
+
+		-
+			message: '#^Method Cline\\Breadcrumbs\\Exceptions\\UnnamedRouteException\:\:getSolution\(\) should return Facade\\IgnitionContracts\\Solution but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Exceptions/UnnamedRouteException.php
+
+		-
+			message: '#^Cannot call method setDocumentationLinks\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Exceptions/ViewNotSetException.php
+
+		-
+			message: '#^Cannot call method setSolutionDescription\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Exceptions/ViewNotSetException.php
+
+		-
+			message: '#^Method Cline\\Breadcrumbs\\Exceptions\\ViewNotSetException\:\:getSolution\(\) should return Facade\\IgnitionContracts\\Solution but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Exceptions/ViewNotSetException.php
+
+		-
+			message: '#^Method Cline\\Breadcrumbs\\Generator\:\:call\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Generator.php
+
+		-
+			message: '#^Method Cline\\Breadcrumbs\\Generator\:\:generate\(\) has parameter \$after with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Generator.php
+
+		-
+			message: '#^Method Cline\\Breadcrumbs\\Generator\:\:generate\(\) has parameter \$before with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Generator.php
+
+		-
+			message: '#^Method Cline\\Breadcrumbs\\Generator\:\:generate\(\) has parameter \$callbacks with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Generator.php
+
+		-
+			message: '#^Method Cline\\Breadcrumbs\\Generator\:\:generate\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Generator.php
+
+		-
+			message: '#^Method Cline\\Breadcrumbs\\Generator\:\:generate\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Generator.php
+
+		-
+			message: '#^Method Cline\\Breadcrumbs\\Generator\:\:push\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Generator.php
+
+		-
+			message: '#^Property Cline\\Breadcrumbs\\Generator\:\:\$breadcrumbs with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Generator.php
+
+		-
+			message: '#^Property Cline\\Breadcrumbs\\Generator\:\:\$callbacks type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Generator.php
+
+		-
+			message: '#^Trying to invoke mixed but it''s not a callable\.$#'
+			identifier: callable.nonCallable
+			count: 3
+			path: src/Generator.php
+
+		-
+			message: '#^Method Cline\\Breadcrumbs\\Manager\:\:current\(\) should return object\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Manager.php
+
+		-
+			message: '#^Method Cline\\Breadcrumbs\\Manager\:\:generate\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Manager.php
+
+		-
+			message: '#^Method Cline\\Breadcrumbs\\Manager\:\:getCurrentRoute\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Manager.php
+
+		-
+			message: '#^Method Cline\\Breadcrumbs\\Manager\:\:view\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Manager.php
+
+		-
+			message: '#^Parameter \#1 \$name of method Illuminate\\Routing\\Route\:\:parameter\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Manager.php
+
+		-
+			message: '#^Parameter \#1 \$view of method Cline\\Breadcrumbs\\Manager\:\:view\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Manager.php
+
+		-
+			message: '#^Parameter \#4 \$name of method Cline\\Breadcrumbs\\Generator\:\:generate\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Manager.php
+
+		-
+			message: '#^Parameter \#5 \$params of method Cline\\Breadcrumbs\\Generator\:\:generate\(\) expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Manager.php
+
+		-
+			message: '#^Possibly invalid array key type mixed\.$#'
+			identifier: offsetAccess.invalidOffset
+			count: 1
+			path: src/Manager.php
+
+		-
+			message: '#^Property Cline\\Breadcrumbs\\Manager\:\:\$after type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Manager.php
+
+		-
+			message: '#^Property Cline\\Breadcrumbs\\Manager\:\:\$before type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Manager.php
+
+		-
+			message: '#^Property Cline\\Breadcrumbs\\Manager\:\:\$callbacks type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Manager.php
+
+		-
+			message: '#^Property Cline\\Breadcrumbs\\Manager\:\:\$route type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Manager.php
+
+		-
+			message: '#^Method Cline\\Breadcrumbs\\ServiceProvider\:\:provides\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/ServiceProvider.php
+
+		-
+			message: '#^Parameter \#2 \$concrete of method Illuminate\\Contracts\\Container\\Container\:\:bind\(\) expects Closure\|string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/ServiceProvider.php
+
+		-
+			message: '#^Parameter \#2 \$concrete of method Illuminate\\Contracts\\Container\\Container\:\:singleton\(\) expects Closure\|string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/ServiceProvider.php
