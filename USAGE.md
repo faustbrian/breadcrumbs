@@ -72,6 +72,13 @@ return [
         ],
     ],
 
+    'callbacks' => [
+        'autoload' => [
+            base_path('routes/breadcrumbs/*.php'),
+            base_path('modules/*/Routes/breadcrumbs.php'),
+        ],
+    ],
+
     'cache' => [
         'enabled' => true,
         'path' => base_path('bootstrap/cache/breadcrumbs.php'),
@@ -93,6 +100,8 @@ Options:
 - `discovery.classmap_paths`: optional classmap files used for discovery.
 - `cache.enabled`: enable discovery result caching.
 - `cache.path`: cache file location for discovered class names.
+- `callbacks.autoload`: glob patterns for route-style callback registration
+  files auto-loaded at boot.
 - `serializers`: output serializer class map by format name.
 
 ## Creating breadcrumb definitions

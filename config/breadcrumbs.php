@@ -105,6 +105,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Callback Definition Files
+    |--------------------------------------------------------------------------
+    |
+    | Route-style callback registrations can be auto-loaded from file patterns.
+    | Matching files are required during package boot in sorted order.
+    |
+    */
+
+    'callbacks' => [
+        'autoload' => [
+            base_path('routes/breadcrumbs/*.php'),
+            base_path('modules/*/Routes/breadcrumbs.php'),
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Cache
     |--------------------------------------------------------------------------
     |

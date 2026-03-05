@@ -26,7 +26,14 @@ use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 use Override;
 
+use function array_keys;
+use function config;
 use function config_path;
+use function glob;
+use function is_array;
+use function is_file;
+use function is_string;
+use function sort;
 
 /**
  * Registers container bindings, views, and console commands.
@@ -68,6 +75,8 @@ final class ServiceProvider extends BaseServiceProvider implements DeferrablePro
      */
     public function boot(): void
     {
+        $this->loadCallbackDefinitionFiles();
+
         $this->loadViewComponentsAs('breadcrumbs', [Trail::class]);
 
         $this->publishes([
@@ -83,5 +92,42 @@ final class ServiceProvider extends BaseServiceProvider implements DeferrablePro
             ClearBreadcrumbDefinitionsCacheCommand::class,
             ValidateBreadcrumbDefinitionsCommand::class,
         ]);
+    }
+
+    private function loadCallbackDefinitionFiles(): void
+    {
+        $patterns = config('breadcrumbs.callbacks.autoload', []);
+
+        if (!is_array($patterns)) {
+            return;
+        }
+
+        /** @var array<string, true> $files */
+        $files = [];
+
+        foreach ($patterns as $pattern) {
+            if (!is_string($pattern)) {
+                continue;
+            }
+
+            if ($pattern === '') {
+                continue;
+            }
+
+            foreach (glob($pattern) ?: [] as $file) {
+                if (!is_file($file)) {
+                    continue;
+                }
+
+                $files[$file] = true;
+            }
+        }
+
+        $resolvedFiles = array_keys($files);
+        sort($resolvedFiles);
+
+        foreach ($resolvedFiles as $file) {
+            require $file;
+        }
     }
 }
