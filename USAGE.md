@@ -124,6 +124,33 @@ final class HomeBreadcrumb implements BreadcrumbDefinition
 }
 ```
 
+Route-style callback API is also supported when you prefer inline
+registration:
+
+```php
+use Cline\Breadcrumbs\Facades\Breadcrumbs;
+use Cline\Breadcrumbs\Routing\BreadcrumbTrail;
+
+Breadcrumbs::for('home', function (BreadcrumbTrail $trail): void {
+    $trail->push('Home', route('home'));
+});
+
+Breadcrumbs::group(['as' => 'blog'], function (): void {
+    Breadcrumbs::for('index', function (BreadcrumbTrail $trail): void {
+        $trail->parent('home');
+        $trail->push('Blog', route('blog.index'));
+    });
+});
+```
+
+Notes:
+
+- `Breadcrumbs::as()` is an alias of `Breadcrumbs::for()`.
+- `group()` supports string prefixes (for example, `'admin'`) or route-like
+  arrays (`['as' => 'admin']`).
+- Callback parameters after the trail are resolved by name from breadcrumb
+  context params. You can also type-hint `BreadcrumbContext`.
+
 Create your own Blade template (for example, `resources/views/breadcrumbs.blade.php`)
 because this package intentionally ships no default UI:
 

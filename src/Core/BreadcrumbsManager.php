@@ -11,7 +11,9 @@ namespace Cline\Breadcrumbs\Core;
 
 use Cline\Breadcrumbs\Exceptions\InvalidBreadcrumbSerializerPayloadException;
 use Cline\Breadcrumbs\Exceptions\ViewNotConfiguredException;
+use Cline\Breadcrumbs\Routing\DefinitionRegistrar;
 use Cline\Breadcrumbs\Serialization\SerializerRegistry;
+use Closure;
 use Illuminate\Container\Attributes\Config;
 use Illuminate\Container\Attributes\Singleton;
 use Illuminate\Contracts\View\Factory as ViewFactory;
@@ -54,9 +56,36 @@ final readonly class BreadcrumbsManager
         private RouteContextResolver $routeContextResolver,
         private ViewFactory $viewFactory,
         private SerializerRegistry $serializers,
+        private DefinitionRegistrar $registrar,
         #[Config('breadcrumbs.view')]
         private string $defaultView,
     ) {}
+
+    /**
+     * Register a callback-based breadcrumb definition.
+     */
+    public function for(string $name, Closure $callback): void
+    {
+        $this->registrar->for($name, $callback);
+    }
+
+    /**
+     * Alias of `for` for route-like ergonomics.
+     */
+    public function as(string $name, Closure $callback): void
+    {
+        $this->registrar->as($name, $callback);
+    }
+
+    /**
+     * Group callback-based breadcrumb registrations.
+     *
+     * @param array<string, mixed>|string $attributes
+     */
+    public function group(array|string $attributes, Closure $callback): mixed
+    {
+        return $this->registrar->group($attributes, $callback);
+    }
 
     /**
      * @param array<string, mixed> $params

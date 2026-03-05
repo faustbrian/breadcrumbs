@@ -11,6 +11,7 @@ namespace Cline\Breadcrumbs\Facades;
 
 use Cline\Breadcrumbs\Core\BreadcrumbsManager;
 use Cline\Breadcrumbs\Core\BreadcrumbTrail;
+use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Facade;
@@ -36,7 +37,10 @@ use Illuminate\Support\Facades\Facade;
  *     }>
  * }
  *
+ * @method static void                             as(string $name, Closure $callback)
  * @method static list<BreadcrumbTrailItemPayload> asArray(?string $name = null, array<string, mixed> $params = [])
+ * @method static void                             for(string $name, Closure $callback)
+ * @method static mixed                            group(array<string, mixed>|string $attributes, Closure $callback)
  * @method static BreadcrumbJsonLdPayload          jsonLd(?string $name = null, array<string, mixed> $params = [])
  * @method static View                             render(?string $name = null, array<string, mixed> $params = [], ?string $view = null)
  * @method static JsonResponse                     toResponse(?string $name = null, array<string, mixed> $params = [], string $format = 'trail')

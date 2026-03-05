@@ -56,8 +56,25 @@ final class DefinitionRegistry
                 DuplicateBreadcrumbDefinitionException::forName($name, $definitionClass),
             );
 
-            $this->definitions[$name] = $definition;
+            $this->register($definition);
         }
+    }
+
+    /**
+     * Register a breadcrumb definition instance.
+     *
+     * @throws DuplicateBreadcrumbDefinitionException
+     */
+    public function register(BreadcrumbDefinition $definition): void
+    {
+        $name = $definition->name();
+
+        throw_if(
+            isset($this->definitions[$name]),
+            DuplicateBreadcrumbDefinitionException::forName($name, $definition::class),
+        );
+
+        $this->definitions[$name] = $definition;
     }
 
     /**
