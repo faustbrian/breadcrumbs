@@ -60,3 +60,18 @@ it('injects trail builder and context into callbacks', function (): void {
 
     expect($trail->items()[1]->label())->toBe('Page guides');
 });
+
+it('allows later callback registrations to override previous ones', function (): void {
+    Breadcrumbs::for('home', function (BreadcrumbTrail $trail): void {
+        $trail->push('Home', '/');
+    });
+
+    Breadcrumbs::for('home', function (BreadcrumbTrail $trail): void {
+        $trail->push('Dashboard', '/dashboard');
+    });
+
+    $trail = Breadcrumbs::trail('home');
+
+    expect($trail->labels())->toBe(['Dashboard'])
+        ->and($trail->items()[0]->url())->toBe('/dashboard');
+});

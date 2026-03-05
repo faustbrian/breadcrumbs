@@ -36,7 +36,7 @@ final class DefinitionRegistrar
 
     public function for(string $name, Closure $callback): void
     {
-        $this->registry->register(
+        $this->registry->upsert(
             new CallbackBreadcrumbDefinition($this->qualifyName($name), $callback),
         );
     }

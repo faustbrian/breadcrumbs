@@ -78,6 +78,14 @@ final class DefinitionRegistry
     }
 
     /**
+     * Register or replace a breadcrumb definition instance by name.
+     */
+    public function upsert(BreadcrumbDefinition $definition): void
+    {
+        $this->definitions[$definition->name()] = $definition;
+    }
+
+    /**
      * Get a breadcrumb definition by name.
      *
      * @throws MissingBreadcrumbDefinitionException
