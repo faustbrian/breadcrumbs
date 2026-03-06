@@ -12,6 +12,7 @@ namespace Cline\Breadcrumbs\Routing;
 use Cline\Breadcrumbs\Contracts\BreadcrumbDefinition;
 use Cline\Breadcrumbs\Core\BreadcrumbContext;
 use Cline\Breadcrumbs\Core\TrailBuilder;
+use Cline\Breadcrumbs\Support\BreadcrumbParamResolver;
 use Closure;
 use ReflectionFunction;
 use ReflectionNamedType;
@@ -86,6 +87,10 @@ final readonly class CallbackBreadcrumbDefinition implements BreadcrumbDefinitio
         $name = $parameter->getName();
 
         if ($context->hasParam($name)) {
+            if ($type instanceof ReflectionNamedType && !$type->isBuiltin()) {
+                return BreadcrumbParamResolver::resolveModel($context, $name, $type->getName());
+            }
+
             return $context->param($name);
         }
 

@@ -11,6 +11,7 @@ use Cline\Breadcrumbs\Core\BreadcrumbContext;
 use Cline\Breadcrumbs\Core\TrailBuilder;
 use Cline\Breadcrumbs\Facades\Breadcrumbs;
 use Cline\Breadcrumbs\Routing\BreadcrumbTrail;
+use Tests\Fixtures\Models\ResolvableUser;
 
 it('registers breadcrumbs with callback api', function (): void {
     Breadcrumbs::for('home', function (BreadcrumbTrail $trail): void {
@@ -74,4 +75,16 @@ it('allows later callback registrations to override previous ones', function ():
 
     expect($trail->labels())->toBe(['Dashboard'])
         ->and($trail->items()[0]->url())->toBe('/dashboard');
+});
+
+it('resolves typed eloquent model parameters for callback breadcrumbs', function (): void {
+    Breadcrumbs::for('users.show', function (BreadcrumbTrail $trail, ResolvableUser $user): void {
+        $trail->push('Users', '/users');
+        $trail->push('User '.$user->getRouteKey(), '/users/'.$user->getRouteKey());
+    });
+
+    $trail = Breadcrumbs::trail('users.show', ['user' => 7]);
+
+    expect($trail->labels())->toBe(['Users', 'User 7'])
+        ->and($trail->items()[1]->url())->toBe('/users/7');
 });
