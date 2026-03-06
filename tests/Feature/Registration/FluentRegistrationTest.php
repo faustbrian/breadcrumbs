@@ -88,3 +88,20 @@ it('resolves typed eloquent model parameters for callback breadcrumbs', function
     expect($trail->labels())->toBe(['Users', 'User 7'])
         ->and($trail->items()[1]->url())->toBe('/users/7');
 });
+
+it('supports passing typed callback models to parent breadcrumbs', function (): void {
+    Breadcrumbs::for('users.show', function (BreadcrumbTrail $trail, ResolvableUser $user): void {
+        $trail->push('Users', '/users');
+        $trail->push('User '.$user->getRouteKey(), '/users/'.$user->getRouteKey());
+    });
+
+    Breadcrumbs::for('users.edit', function (BreadcrumbTrail $trail, ResolvableUser $user): void {
+        $trail->parent('users.show', ['user' => $user]);
+        $trail->push('Edit', '/users/'.$user->getRouteKey().'/edit');
+    });
+
+    $trail = Breadcrumbs::trail('users.edit', ['user' => 7]);
+
+    expect($trail->labels())->toBe(['Users', 'User 7', 'Edit'])
+        ->and($trail->items()[2]->url())->toBe('/users/7/edit');
+});
