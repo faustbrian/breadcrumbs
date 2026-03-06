@@ -115,8 +115,8 @@ return [
 
     'callbacks' => [
         'autoload' => [
-            base_path('routes/breadcrumbs/*.php'),
-            base_path('modules/*/Routes/breadcrumbs.php'),
+            base_path('breadcrumbs/*.php'),
+            base_path('modules/*/Breadcrumbs/*.php'),
         ],
     ],
 

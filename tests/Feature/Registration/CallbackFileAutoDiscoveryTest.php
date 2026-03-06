@@ -35,7 +35,7 @@ final class CallbackFileAutoDiscoveryTest extends TestCase
 
         $app->make(Repository::class)->set(
             'breadcrumbs.callbacks.autoload',
-            [__DIR__.'/../../fixtures/routes/breadcrumbs/*.php'],
+            [__DIR__.'/../../Fixtures/breadcrumbs/*.php'],
         );
     }
 }
