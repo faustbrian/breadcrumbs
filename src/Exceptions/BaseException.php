@@ -15,14 +15,24 @@ use Facade\IgnitionContracts\Solution;
 use RuntimeException;
 
 /**
- * Base exception type for breadcrumb domain failures.
+ * Shared base class for package-level runtime failures.
  *
- * Extend this class for all package-specific exception variants.
+ * Breadcrumb exceptions inherit from this type so consumers can rely on a
+ * consistent exception hierarchy and Ignition solution payload. Concrete
+ * exceptions are expected to communicate the precise domain failure while this
+ * base class centralizes developer-facing remediation guidance.
  *
  * @author Brian Faust <brian@cline.sh>
  */
 abstract class BaseException extends RuntimeException implements BreadcrumbsException, ProvidesSolution
 {
+    /**
+     * Provide a generic Ignition solution payload for breadcrumb exceptions.
+     *
+     * Concrete exceptions do not currently customize solution text, so the
+     * current exception message becomes the primary failure detail and the
+     * package documentation link acts as the next diagnostic step.
+     */
     public function getSolution(): Solution
     {
         /** @var BaseSolution $solution */

@@ -35,7 +35,13 @@ use function str_replace;
 use function str_starts_with;
 
 /**
- * Discovers breadcrumb definition classes from classmaps and PSR-4 mappings.
+ * Discovers breadcrumb definition classes from Composer metadata and filesystem scans.
+ *
+ * Discovery is the package's fallback expansion step when definitions are not
+ * supplied exhaustively through configuration. It normalizes candidate paths,
+ * inspects configured Composer classmaps first, then walks PSR-4 directories to
+ * infer class names from file locations. Only loadable classes that implement
+ * {@see BreadcrumbDefinition} survive the pipeline.
  *
  * @psalm-immutable
  * @author Brian Faust <brian@cline.sh>
@@ -45,6 +51,9 @@ final readonly class DefinitionDiscovery
 {
     /**
      * @param list<string> $classmapPaths
+     *
+     * The configured classmap files are consulted before PSR-4 traversal so
+     * existing Composer metadata can short-circuit some discovery work.
      */
     public function __construct(
         #[Config('breadcrumbs.discovery.classmap_paths', [])]
@@ -52,7 +61,15 @@ final readonly class DefinitionDiscovery
     ) {}
 
     /**
-     * @param  list<string>       $paths
+     * @param list<string> $paths
+     *
+     * Discover definition classes from the provided root directories.
+     *
+     * Invalid, empty, or non-directory paths are discarded during path
+     * normalization. Duplicates are removed by class name, with later discovery
+     * passes overwriting earlier file-path bookkeeping while preserving the
+     * final unique class list returned to callers.
+     *
      * @return list<class-string>
      */
     public function discover(array $paths): array
@@ -85,7 +102,12 @@ final readonly class DefinitionDiscovery
     }
 
     /**
-     * @param  list<string> $paths
+     * @param list<string> $paths
+     *
+     * Normalize discovery roots to absolute directory paths.
+     *
+     * Only real directories survive this stage, which prevents later classmap
+     * and filesystem passes from performing redundant existence checks.
      * @return list<string>
      */
     private function resolvePaths(array $paths): array
@@ -114,7 +136,13 @@ final readonly class DefinitionDiscovery
     }
 
     /**
-     * @param  list<string>                $paths
+     * @param list<string> $paths
+     *
+     * Filter Composer classmap entries down to classes inside the discovery roots.
+     *
+     * This pass trusts Composer's class-to-file mapping but still validates
+     * class names and file path membership before returning candidates.
+     *
      * @return array<class-string, string>
      */
     private function discoverFromClassmaps(array $paths): array
@@ -152,6 +180,12 @@ final readonly class DefinitionDiscovery
     }
 
     /**
+     * Load and merge the configured Composer classmap files.
+     *
+     * Each file is expected to return an array matching Composer's generated
+     * classmap format. Invalid files are skipped silently so discovery can
+     * continue even when optional classmap inputs are absent.
+     *
      * @return array<mixed, mixed>
      */
     private function loadClassmaps(): array
@@ -183,7 +217,13 @@ final readonly class DefinitionDiscovery
     }
 
     /**
-     * @param  list<string>                $paths
+     * @param list<string> $paths
+     *
+     * Walk PSR-4 directories under the discovery roots and infer classes by path.
+     *
+     * This is broader and potentially more expensive than the classmap pass,
+     * which is why it runs second and only after a PSR-4 map is available.
+     *
      * @return array<class-string, string>
      */
     private function discoverFromPsr4(array $paths): array
@@ -224,7 +264,13 @@ final readonly class DefinitionDiscovery
     }
 
     /**
-     * @param  array<string, list<string>> $psr4
+     * @param array<string, list<string>> $psr4
+     *
+     * Infer the fully qualified class name for a PHP file using Composer PSR-4 mappings.
+     *
+     * Returns `null` when the file does not belong to any registered namespace
+     * root or when the inferred class name would be syntactically invalid.
+     *
      * @return null|class-string
      */
     private function classFromPsr4Path(string $filePath, array $psr4): ?string
@@ -271,6 +317,8 @@ final readonly class DefinitionDiscovery
 
     /**
      * @param list<string> $paths
+     *
+     * Determine whether a file resides under one of the normalized discovery roots.
      */
     private function isInDiscoveryPaths(string $filePath, array $paths): bool
     {
@@ -287,6 +335,12 @@ final readonly class DefinitionDiscovery
         return false;
     }
 
+    /**
+     * Confirm that a candidate class can be loaded and implements the definition contract.
+     *
+     * Files are required lazily when the class is not already loaded so
+     * discovery can validate classes inferred from filesystem paths.
+     */
     private function isDefinition(string $class, string $file): bool
     {
         if (!class_exists($class, false)) {
@@ -301,6 +355,11 @@ final readonly class DefinitionDiscovery
     }
 
     /**
+     * Load Composer's generated PSR-4 namespace map from the local vendor tree.
+     *
+     * Missing or malformed Composer metadata is treated as "no PSR-4 sources
+     * available" rather than an exceptional condition.
+     *
      * @return array<string, list<string>>
      */
     private function loadPsr4Map(): array
@@ -345,6 +404,12 @@ final readonly class DefinitionDiscovery
         return $normalized;
     }
 
+    /**
+     * Validate that a discovered symbol looks like a legal PHP class name.
+     *
+     * Discovery uses this as a defensive filter before attempting to instantiate
+     * or load userland classes from Composer metadata.
+     */
     private function isValidClassName(string $value): bool
     {
         return preg_match('/^(?:\\\\?[A-Za-z_]\w*)(?:\\\\[A-Za-z_]\w*)*$/', $value) === 1;

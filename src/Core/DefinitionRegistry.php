@@ -22,10 +22,14 @@ use function throw_if;
 use function throw_unless;
 
 /**
- * Name-indexed registry of resolved breadcrumb definition instances.
+ * Name-indexed catalog of breadcrumb definition instances.
  *
- * The registry is fully built during construction and then used as a
- * read-only lookup for trail resolution.
+ * The registry is populated during container construction from the resolved
+ * definition class list and then serves as the authoritative lookup source for
+ * trail resolution. It centralizes two invariants for the package:
+ * definition classes must implement {@see BreadcrumbDefinition}, and each
+ * resolved name must be unique across discovered and manually configured
+ * definitions.
  *
  * @author Brian Faust <brian@cline.sh>
  */
@@ -36,6 +40,13 @@ final class DefinitionRegistry
     private array $definitions = [];
 
     /**
+     * Build the registry from the discovered definition class list.
+     *
+     * Resolution order is inherited from {@see DefinitionClassResolver}. Each
+     * class is instantiated through the container so constructor dependencies
+     * and contextual bindings remain active, then keyed by the runtime value of
+     * {@see BreadcrumbDefinition::name()}.
+     *
      * @throws DuplicateBreadcrumbDefinitionException
      * @throws InvalidBreadcrumbDefinitionException
      */
@@ -61,7 +72,11 @@ final class DefinitionRegistry
     }
 
     /**
-     * Register a breadcrumb definition instance.
+     * Register a definition while preserving the uniqueness invariant for its name.
+     *
+     * This method is strict by design: attempting to replace an existing name
+     * is treated as a package configuration error because trail resolution must
+     * remain deterministic once the registry is assembled.
      *
      * @throws DuplicateBreadcrumbDefinitionException
      */
@@ -78,7 +93,11 @@ final class DefinitionRegistry
     }
 
     /**
-     * Register or replace a breadcrumb definition instance by name.
+     * Register or replace a definition without duplicate checks.
+     *
+     * This is the explicit escape hatch for callers that intentionally want
+     * last-write-wins behavior. Use it only when overwriting an existing
+     * definition is part of the desired runtime customization strategy.
      */
     public function upsert(BreadcrumbDefinition $definition): void
     {
@@ -86,7 +105,11 @@ final class DefinitionRegistry
     }
 
     /**
-     * Get a breadcrumb definition by name.
+     * Resolve a definition by its public breadcrumb name.
+     *
+     * Missing names are treated as hard failures because the resolver cannot
+     * continue building a trail once a referenced parent or root definition is
+     * absent.
      *
      * @throws MissingBreadcrumbDefinitionException
      */
@@ -98,7 +121,7 @@ final class DefinitionRegistry
     }
 
     /**
-     * Determine whether a breadcrumb definition is registered.
+     * Determine whether a definition exists without triggering exception flow.
      */
     public function has(string $name): bool
     {
@@ -106,6 +129,11 @@ final class DefinitionRegistry
     }
 
     /**
+     * Return the entire registry keyed by breadcrumb name.
+     *
+     * The returned array exposes the live in-memory registry state, which makes
+     * it suitable for diagnostics and cache warm-up style workflows.
+     *
      * @return array<string, BreadcrumbDefinition>
      */
     public function all(): array

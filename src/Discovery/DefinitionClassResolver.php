@@ -17,7 +17,12 @@ use function array_unique;
 use function array_values;
 
 /**
- * Resolves breadcrumb definition classes from config, discovery, and cache.
+ * Resolves the authoritative definition class list used to build the registry.
+ *
+ * This class decides where definition classes come from and in what order they
+ * should be considered. It merges explicit configuration with optional runtime
+ * discovery, while giving an enabled cache the first chance to short-circuit
+ * the whole process.
  *
  * @author Brian Faust <brian@cline.sh>
  * @psalm-immutable
@@ -47,6 +52,16 @@ final readonly class DefinitionClassResolver
     ) {}
 
     /**
+     * Resolve definition classes from cache, config, and optional discovery.
+     *
+     * Resolution order is:
+     * 1. Return the cached class list when caching is enabled and yields data.
+     * 2. Start from explicitly configured definitions.
+     * 3. Optionally append discovered classes from non-empty discovery paths.
+     * 4. De-duplicate while preserving first-seen order.
+     *
+     * The method does not write cache entries itself; it only consumes them.
+     *
      * @return list<class-string>
      */
     public function resolve(): array

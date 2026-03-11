@@ -17,7 +17,13 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * Facade proxy for the breadcrumbs manager API.
+ * Facade entry point for the package's breadcrumb registration and rendering API.
+ *
+ * This facade fronts the singleton breadcrumbs manager that owns definition
+ * registration, trail resolution, serialization, and view rendering. It is the
+ * public static surface consumers typically interact with from service
+ * providers, route files, controllers, and Blade directives, while the actual
+ * lifecycle and state remain container-managed.
  *
  * @phpstan-type BreadcrumbTrailItemPayload array{
  *     label: string,
@@ -50,7 +56,11 @@ use Illuminate\Support\Facades\Facade;
 final class Breadcrumbs extends Facade
 {
     /**
-     * Get the service container binding key.
+     * Get the container binding used to resolve the underlying manager.
+     *
+     * The facade always resolves to the same manager singleton, ensuring that
+     * callback registrations and serializer lookups share one registry for the
+     * duration of the Laravel application lifecycle.
      */
     protected static function getFacadeAccessor(): string
     {

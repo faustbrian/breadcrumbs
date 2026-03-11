@@ -19,7 +19,13 @@ use Illuminate\Contracts\Container\Container;
 use function throw_unless;
 
 /**
- * Resolves configured breadcrumb serializers by format.
+ * Resolves serializer implementations for named response formats.
+ *
+ * The registry sits between configuration and runtime response generation. It
+ * translates a format key such as `trail` or `json-ld` into a container-made
+ * serializer instance, validating both that a mapping exists and that the
+ * resolved service actually implements the breadcrumb serializer contract.
+ *
  * @author Brian Faust <brian@cline.sh>
  * @psalm-immutable
  */
@@ -36,6 +42,16 @@ final readonly class SerializerRegistry
     ) {}
 
     /**
+     * Resolve the serializer configured for the requested output format.
+     *
+     * Failure behavior is explicit:
+     * - throws `MissingBreadcrumbSerializerException` when the format is not configured
+     * - throws `InvalidBreadcrumbSerializerException` when the container resolves
+     *   a class that does not implement `BreadcrumbSerializer`
+     *
+     * The container is used for instantiation so serializers may depend on
+     * other services and still participate in Laravel's lifecycle.
+     *
      * @throws InvalidBreadcrumbSerializerException
      * @throws MissingBreadcrumbSerializerException
      */

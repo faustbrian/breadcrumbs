@@ -15,6 +15,7 @@ use Override;
 use Tests\Support\TestCase;
 
 /**
+ * @author Brian Faust <brian@cline.sh>
  * @internal
  */
 final class CallbackFileAutoDiscoveryTest extends TestCase

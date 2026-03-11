@@ -25,7 +25,17 @@ use function is_int;
 use function is_string;
 
 /**
- * Immutable breadcrumb name and parameter context.
+ * Immutable runtime context supplied to breadcrumb resolution.
+ *
+ * The context carries the target definition name together with normalized
+ * parameters that definitions can safely read during build. Normalization is
+ * performed up front so every consumer sees the same scalar, enum, stringable,
+ * and nested-array representations regardless of the original caller input.
+ *
+ * Unsupported parameter types are rejected at construction time instead of
+ * leaking deeper into trail building. That keeps failure localized to context
+ * creation and guarantees `param()` only ever exposes the supported normalized
+ * value shapes declared below.
  *
  * @phpstan-type BreadcrumbParamScalar null|bool|int|float|string
  * @phpstan-type BreadcrumbParamValue BreadcrumbParamScalar|array<array-key, mixed>
@@ -38,9 +48,18 @@ final readonly class BreadcrumbContext
     private array $params;
 
     /**
+     * Create a context for one definition resolution request.
+     *
+     * Parameters are normalized immediately so invalid value types fail before
+     * any definition code runs. Nested arrays are normalized recursively using
+     * dotted keys in exception messages to identify the failing path.
+     *
      * @param array<string, mixed> $params
      *
-     * @throws UnsupportedBreadcrumbParameterTypeException
+     * @throws UnsupportedBreadcrumbParameterTypeException When any parameter
+     *                                                     cannot be reduced to
+     *                                                     a supported scalar or
+     *                                                     nested array value.
      */
     public function __construct(
         private string $name,
@@ -50,7 +69,7 @@ final readonly class BreadcrumbContext
     }
 
     /**
-     * Get the breadcrumb definition name.
+     * Return the definition name this context should resolve.
      */
     public function name(): string
     {
@@ -58,6 +77,12 @@ final readonly class BreadcrumbContext
     }
 
     /**
+     * Return the fully normalized parameter map for this context.
+     *
+     * Callers receive the exact values that `param()` would expose, which makes
+     * this suitable for forwarding the whole context into nested resolution or
+     * debugging serialization.
+     *
      * @return array<string, BreadcrumbParamValue>
      */
     public function params(): array
@@ -66,7 +91,10 @@ final readonly class BreadcrumbContext
     }
 
     /**
-     * Determine whether a parameter exists in this context.
+     * Determine whether a parameter key was supplied after normalization.
+     *
+     * This distinguishes a missing key from a key explicitly set to `null`,
+     * which matters for definitions that treat null as meaningful state.
      */
     public function hasParam(string $key): bool
     {
@@ -74,11 +102,17 @@ final readonly class BreadcrumbContext
     }
 
     /**
-     * Get a normalized parameter value.
+     * Read one normalized parameter value from the context.
+     *
+     * If the key exists, the stored normalized value is returned even when that
+     * value is `null`. If the key does not exist, the provided default is used
+     * when supplied; otherwise a missing-parameter exception is raised so
+     * callers can fail loudly for required inputs.
      *
      * @template TDefault
      * @param  TDefault                            $default
-     * @throws MissingBreadcrumbParameterException
+     * @throws MissingBreadcrumbParameterException When the key is absent and no
+     *                                             default argument was passed.
      * @return BreadcrumbParamValue|TDefault
      */
     public function param(string $key, mixed $default = null): mixed
@@ -95,11 +129,17 @@ final readonly class BreadcrumbContext
     }
 
     /**
+     * Create a new normalized context for another definition request.
+     *
+     * This is a convenience for parent or sibling resolution flows that need a
+     * fresh immutable context rather than mutating the current instance in
+     * place.
+     *
      * @param array<string, mixed> $params
      *
-     * Create a new context instance with a different name and parameters.
-     *
-     * @throws UnsupportedBreadcrumbParameterTypeException
+     * @throws UnsupportedBreadcrumbParameterTypeException When the replacement
+     *                                                     parameters include an
+     *                                                     unsupported value.
      */
     public function withNameAndParams(string $name, array $params = []): self
     {
@@ -107,6 +147,11 @@ final readonly class BreadcrumbContext
     }
 
     /**
+     * Normalize an associative parameter map one key at a time.
+     *
+     * Keys are string-cast to guarantee consistent lookup semantics even when
+     * callers provide integer-like array keys.
+     *
      * @param  array<string, mixed>                $values
      * @return array<string, BreadcrumbParamValue>
      */
@@ -122,6 +167,13 @@ final readonly class BreadcrumbContext
     }
 
     /**
+     * Normalize one parameter value into the supported transport shape.
+     *
+     * Resolution order is deliberate: scalars remain unchanged, backed enums
+     * become their backing values, pure enums become case names, stringables
+     * are string-cast, and arrays recurse depth-first. Any remaining type is
+     * rejected with the current dotted key path in the exception payload.
+     *
      * @throws UnsupportedBreadcrumbParameterTypeException
      * @return BreadcrumbParamValue
      */

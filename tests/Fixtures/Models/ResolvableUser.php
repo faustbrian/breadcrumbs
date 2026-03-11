@@ -13,6 +13,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Override;
 
+/**
+ * @author Brian Faust <brian@cline.sh>
+ */
 final class ResolvableUser extends Model
 {
     use HasFactory;

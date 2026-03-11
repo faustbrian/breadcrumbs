@@ -26,14 +26,25 @@ use function is_string;
 use function sort;
 
 /**
- * Registers container bindings, views, and console commands.
+ * Laravel service provider that boots the breadcrumbs package into an application.
+ *
+ * The provider participates in two lifecycle phases:
+ * - `register()` merges package defaults so later consumers read a complete config tree
+ * - `boot()` loads callback definition files, registers view components,
+ *   exposes publishable config, and conditionally registers console commands
+ *
+ * Callback definition loading happens during boot so application config is
+ * already available and definition files can resolve package services.
  *
  * @author Brian Faust <brian@cline.sh>
  */
 final class ServiceProvider extends BaseServiceProvider
 {
     /**
-     * Register package configuration and service bindings.
+     * Merge the package configuration into the application's config repository.
+     *
+     * This runs early in the provider lifecycle so later boot logic and any
+     * downstream services see user overrides layered on top of package defaults.
      */
     #[Override()]
     public function register(): void
@@ -42,7 +53,11 @@ final class ServiceProvider extends BaseServiceProvider
     }
 
     /**
-     * Boot package views, components, publishable assets, and commands.
+     * Boot runtime integrations after the container has been registered.
+     *
+     * Definition files are loaded first so any later view rendering or response
+     * generation sees the complete callback registry. Console-only commands are
+     * registered lazily to avoid unnecessary runtime noise for web requests.
      */
     public function boot(): void
     {
@@ -65,6 +80,15 @@ final class ServiceProvider extends BaseServiceProvider
         ]);
     }
 
+    /**
+     * Require configured callback definition files in deterministic order.
+     *
+     * The `breadcrumbs.callbacks.autoload` config value may contain glob
+     * patterns. Non-string entries, empty patterns, and non-files are ignored.
+     * Duplicate matches are de-duplicated, then the final file list is sorted
+     * before requiring each file so registration order remains stable across
+     * filesystems and repeated boots.
+     */
     private function loadCallbackDefinitionFiles(): void
     {
         $patterns = config('breadcrumbs.callbacks.autoload', []);

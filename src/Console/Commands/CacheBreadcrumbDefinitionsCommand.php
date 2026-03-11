@@ -18,7 +18,18 @@ use Override;
 use function count;
 
 /**
- * Resolves and caches breadcrumb definition classes.
+ * Warm the on-disk definition cache used by breadcrumb bootstrapping.
+ *
+ * This command runs the same definition resolution pipeline the package uses at
+ * runtime, then persists the resulting class list to the configured cache file.
+ * It exists for deployments that want deterministic startup cost and do not
+ * want to repeat filesystem discovery on every request.
+ *
+ * The command fails fast when the configured cache path is empty because there
+ * is no safe fallback location to write to. Resolver and filesystem failures
+ * are allowed to bubble so the operator sees the underlying problem instead of
+ * a partial success message.
+ *
  * @author Brian Faust <brian@cline.sh>
  */
 final class CacheBreadcrumbDefinitionsCommand extends Command
@@ -39,7 +50,11 @@ final class CacheBreadcrumbDefinitionsCommand extends Command
     }
 
     /**
-     * Execute the command.
+     * Resolve the current definition set and write it to the cache file.
+     *
+     * The command reports the number of resolved classes that were persisted.
+     * A `FAILURE` exit code is returned only for an invalid configured cache
+     * path; write and resolution exceptions continue to surface normally.
      *
      * @return self::FAILURE|self::SUCCESS
      */

@@ -22,7 +22,14 @@ use function array_key_exists;
 use function is_a;
 
 /**
- * Runtime breadcrumb definition created from a closure callback.
+ * Runtime breadcrumb definition backed by a user-supplied closure.
+ *
+ * This adapter lets the package keep a formal `BreadcrumbDefinition` contract
+ * internally while exposing a lightweight closure API to consumers. At build
+ * time it reflects the callback signature, resolves the first parameter as
+ * either the raw `TrailBuilder` or the route-style `BreadcrumbTrail`, then
+ * resolves remaining parameters from the breadcrumb context in a predictable
+ * precedence order.
  *
  * @author Brian Faust <brian@cline.sh>
  * @psalm-immutable
@@ -39,6 +46,15 @@ final readonly class CallbackBreadcrumbDefinition implements BreadcrumbDefinitio
         return $this->breadcrumbName;
     }
 
+    /**
+     * Build the breadcrumb trail by invoking the registered callback.
+     *
+     * Parameter resolution happens on each invocation rather than at
+     * registration time so callbacks see the live runtime context. The first
+     * parameter is special-cased for builder injection; subsequent parameters
+     * are resolved from the context, default values, or null when no value can
+     * be supplied.
+     */
     public function build(TrailBuilder $trail, BreadcrumbContext $context): void
     {
         $callbackReflection = new ReflectionFunction($this->callback);
@@ -58,6 +74,14 @@ final readonly class CallbackBreadcrumbDefinition implements BreadcrumbDefinitio
         ($this->callback)(...$arguments);
     }
 
+    /**
+     * Resolve the callback's first parameter to the preferred builder type.
+     *
+     * A first parameter typed as `TrailBuilder` receives the lower-level core
+     * builder directly. Any other signature, including an untyped parameter,
+     * receives the route-style `BreadcrumbTrail` wrapper for the package's
+     * fluent public API.
+     */
     private function resolveFirstParameter(
         ReflectionParameter $parameter,
         TrailBuilder $trail,
@@ -76,6 +100,21 @@ final readonly class CallbackBreadcrumbDefinition implements BreadcrumbDefinitio
         return $routeStyleTrail;
     }
 
+    /**
+     * Resolve a non-builder callback parameter from the current breadcrumb context.
+     *
+     * Resolution order is:
+     * 1. Inject the full `BreadcrumbContext` when explicitly type-hinted.
+     * 2. Resolve a named context parameter.
+     * 3. Rehydrate a model via `BreadcrumbParamResolver` when the parameter is
+     *    type-hinted to a non-builtin class and a matching context value exists.
+     * 4. Fall back to the PHP default value.
+     * 5. Return the raw named parameter from the full params array when present.
+     * 6. Return `null` when nothing matches.
+     *
+     * This ordering preserves ergonomic callback signatures while keeping model
+     * resolution explicit and deterministic.
+     */
     private function resolveParameter(ReflectionParameter $parameter, BreadcrumbContext $context): mixed
     {
         $type = $parameter->getType();

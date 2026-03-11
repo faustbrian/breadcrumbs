@@ -20,9 +20,12 @@ use function array_values;
 use function count;
 
 /**
- * Immutable ordered breadcrumb collection.
+ * Immutable ordered collection representing a fully built breadcrumb trail.
  *
- * The final item is marked as current when the trail is created.
+ * This type is the boundary between the mutable builder phase and all read-only
+ * consumers. It preserves display order exactly as produced by resolution and
+ * enforces the package invariant that only the terminal item is marked as the
+ * current page when the trail is instantiated.
  *
  * @phpstan-type BreadcrumbTrailItemPayload array{
  *     label: string,
@@ -46,9 +49,14 @@ final readonly class BreadcrumbTrail implements Countable, IteratorAggregate
     ) {}
 
     /**
-     * @param list<BreadcrumbItem> $items
+     * Create an immutable trail and normalize current-item state.
      *
-     * Create a trail from item values and normalize the current item.
+     * Resolution order is preserved exactly as supplied. If the list is not
+     * empty, the last item is cloned with `current=true`; earlier items are
+     * left unchanged so callers should treat the provided sequence as a
+     * pre-finalized build result rather than already-normalized output.
+     *
+     * @param list<BreadcrumbItem> $items
      */
     public static function fromItems(array $items): self
     {
@@ -65,9 +73,12 @@ final readonly class BreadcrumbTrail implements Countable, IteratorAggregate
     }
 
     /**
-     * @return list<BreadcrumbItem>
+     * Return all breadcrumb items in display order.
      *
-     * Get trail items in display order.
+     * The returned list is already finalized, including current-item
+     * normalization on the terminal element.
+     *
+     * @return list<BreadcrumbItem>
      */
     public function items(): array
     {
@@ -75,9 +86,12 @@ final readonly class BreadcrumbTrail implements Countable, IteratorAggregate
     }
 
     /**
-     * @return list<string>
+     * Return just the breadcrumb labels in display order.
      *
-     * Get breadcrumb labels in display order.
+     * This is a convenience projection for callers that only need text labels,
+     * such as tests or compact serializers.
+     *
+     * @return list<string>
      */
     public function labels(): array
     {
@@ -85,9 +99,13 @@ final readonly class BreadcrumbTrail implements Countable, IteratorAggregate
     }
 
     /**
-     * @return list<BreadcrumbTrailItemPayload>
+     * Serialize the trail into the package's canonical array payload.
      *
-     * Serialize trail items in display order.
+     * Each item is converted using its own stable serialization contract, so
+     * the resulting list is suitable for JSON responses, view data, and custom
+     * serializer implementations.
+     *
+     * @return list<BreadcrumbTrailItemPayload>
      */
     public function toArray(): array
     {
@@ -95,7 +113,7 @@ final readonly class BreadcrumbTrail implements Countable, IteratorAggregate
     }
 
     /**
-     * Determine whether the trail has no items.
+     * Determine whether resolution produced no breadcrumb items.
      */
     public function isEmpty(): bool
     {
@@ -103,7 +121,7 @@ final readonly class BreadcrumbTrail implements Countable, IteratorAggregate
     }
 
     /**
-     * Get the number of trail items.
+     * Return the number of items in the finalized trail.
      */
     public function count(): int
     {
@@ -111,6 +129,10 @@ final readonly class BreadcrumbTrail implements Countable, IteratorAggregate
     }
 
     /**
+     * Iterate over trail items in display order.
+     *
+     * Iteration is backed by the normalized immutable list stored by the trail.
+     *
      * @return Traversable<int, BreadcrumbItem>
      */
     public function getIterator(): Traversable

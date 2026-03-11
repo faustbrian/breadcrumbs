@@ -12,7 +12,17 @@ namespace Cline\Breadcrumbs\Core;
 use function __;
 
 /**
- * Mutable builder used by definitions to append breadcrumb items.
+ * Mutable trail assembly object passed into breadcrumb definitions.
+ *
+ * Definitions use this builder during the `build` phase to declare parent
+ * relationships and append concrete breadcrumb items. The builder is short
+ * lived: a new instance is created for each definition resolution, populated in
+ * userland code, then collapsed into immutable trail items by the resolver.
+ *
+ * Parent resolution is delegated through the injected callback rather than
+ * performed inline, which keeps the builder focused on definition authoring
+ * ergonomics while the resolver remains responsible for recursion, cycle
+ * detection, and parameter propagation.
  *
  * @phpstan-type ParentResolver callable(string, null|array<string, mixed>): void
  *
@@ -26,14 +36,18 @@ final class TrailBuilder
     /**
      * @param ParentResolver $resolveParent
      *
-     * Callback is invoked when a definition links to a parent breadcrumb.
+     * The callback bridges builder calls back into the recursive resolver.
      */
     public function __construct(
         private readonly mixed $resolveParent,
     ) {}
 
     /**
-     * Resolve and append a named parent breadcrumb trail.
+     * Request that another named breadcrumb trail be resolved first.
+     *
+     * Parents are always expanded before the current definition's own items,
+     * preserving breadcrumb ancestry order. Passing `null` for `$params`
+     * delegates parameter reuse decisions to the resolver callback.
      *
      * @param null|array<string, mixed> $params
      */
@@ -45,7 +59,12 @@ final class TrailBuilder
     }
 
     /**
-     * Append a breadcrumb item to the trail.
+     * Append a concrete breadcrumb item for the current definition.
+     *
+     * Items are recorded in insertion order and are not marked current at this
+     * stage; current-item semantics are applied later when the immutable trail
+     * is finalized. Metadata and HTML attributes are carried through untouched
+     * for serializers and view rendering.
      *
      * @param array<string, mixed>  $meta
      * @param array<string, string> $attributes
@@ -58,7 +77,11 @@ final class TrailBuilder
     }
 
     /**
-     * Translate and append a breadcrumb item.
+     * Translate a label through Laravel's translator before appending it.
+     *
+     * Translation happens eagerly during definition execution, so the resolved
+     * string stored in the trail reflects the locale and replacement data
+     * available at build time.
      *
      * @param array<string, mixed>  $replace
      * @param array<string, mixed>  $meta
@@ -81,7 +104,10 @@ final class TrailBuilder
     /**
      * @return list<BreadcrumbItem>
      *
-     * Get collected breadcrumb items in insertion order.
+     * Return the items collected for this definition in build order.
+     *
+     * No defensive copy or reindexing is performed beyond normal array return
+     * semantics, so the order exactly matches the calls made by the definition.
      */
     public function items(): array
     {

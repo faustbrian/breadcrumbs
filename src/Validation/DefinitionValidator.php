@@ -22,7 +22,19 @@ use function implode;
 use function in_array;
 
 /**
- * Validates registered breadcrumb definitions for missing parents and cycles.
+ * Verifies that the registered breadcrumb definitions form a resolvable parent
+ * graph.
+ *
+ * This validator runs against the in-memory {@see DefinitionRegistry} after
+ * definitions have been registered but before consumers rely on parent chains
+ * to build breadcrumb trails. Its job is purely structural: it checks that
+ * every declared parent exists and that traversing parent links cannot loop
+ * forever.
+ *
+ * The validator does not mutate the registry or attempt recovery. Instead it
+ * produces a {@see DefinitionValidationResult} describing every missing edge
+ * and every unique cycle discovered during graph traversal so package boot or
+ * tests can decide how hard to fail.
  *
  * @phpstan-type DefinitionGraph array<string, list<string>>
  * @phpstan-type BreadcrumbCycle list<string>
@@ -33,12 +45,24 @@ use function in_array;
 #[Singleton()]
 final readonly class DefinitionValidator
 {
+    /**
+     * @param DefinitionRegistry $registry Registry snapshot to validate.
+     */
     public function __construct(
         private DefinitionRegistry $registry,
     ) {}
 
     /**
-     * Validate all known definitions and collect structural issues.
+     * Validate all registered definitions and collect structural issues.
+     *
+     * Validation happens in two passes:
+     * 1. Build an adjacency list of parent relationships for every registered
+     * definition while recording any parent names missing from the registry.
+     * 2. Depth-first walk the resulting graph from every node to detect cycles.
+     *
+     * The returned result is exhaustive for the current registry snapshot. This
+     * method has no side effects beyond reading definitions, so it can be called
+     * during boot, tests, or diagnostics without altering runtime state.
      */
     public function validate(): DefinitionValidationResult
     {
@@ -74,6 +98,13 @@ final readonly class DefinitionValidator
     }
 
     /**
+     * Walk the parent graph from a node and record any cycles encountered.
+     *
+     * The traversal follows parent order exactly as definitions declare it so
+     * cycle reports mirror the resolution order used by the package. Missing
+     * nodes terminate the walk quietly because they are reported separately as
+     * missing-parent edges during graph construction.
+     *
      * @param DefinitionGraph                $graph
      * @param list<string>                   $path
      * @param array<string, BreadcrumbCycle> $cycles

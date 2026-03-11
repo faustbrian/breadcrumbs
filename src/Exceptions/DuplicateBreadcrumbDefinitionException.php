@@ -12,12 +12,31 @@ namespace Cline\Breadcrumbs\Exceptions;
 use function sprintf;
 
 /**
- * Raised when multiple classes register the same breadcrumb name.
+ * Thrown when definition registration would make a breadcrumb name ambiguous.
+ *
+ * Definition names are the primary lookup key used by
+ * {@see \Cline\Breadcrumbs\Core\DefinitionRegistry} during trail resolution.
+ * The registry is populated during boot-time discovery and may also receive
+ * runtime registrations. Once two definitions claim the same name, the package
+ * can no longer deterministically resolve a trail entry, so registration is
+ * aborted immediately instead of allowing last-write-wins behavior.
+ *
+ * This exception therefore marks a structural configuration failure rather than
+ * a recoverable missing resource. It is raised before the conflicting
+ * definition is stored, leaving the registry in its previously valid state.
+ *
  * @author Brian Faust <brian@cline.sh>
  */
 final class DuplicateBreadcrumbDefinitionException extends BaseException
 {
     /**
+     * Create an exception for a duplicate breadcrumb name during registration.
+     *
+     * This factory is used both while the registry is being assembled from
+     * discovered definition classes and when a definition is registered
+     * directly at runtime. The reported class is the definition that attempted
+     * to claim a name that was already present.
+     *
      * @param string       $name            Duplicate breadcrumb definition name.
      * @param class-string $definitionClass Duplicate definition class.
      */

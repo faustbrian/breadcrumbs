@@ -16,7 +16,18 @@ use Override;
 use function implode;
 
 /**
- * Validates breadcrumb definitions for missing parents and cycles.
+ * Run structural validation against the registered breadcrumb graph.
+ *
+ * This command gives package maintainers a deployment and CI entry point for
+ * catching invalid parent references and cyclical parent chains before those
+ * definitions are exercised by a request. It delegates all graph analysis to
+ * the validator and focuses on translating the result into operator-facing
+ * console output.
+ *
+ * Missing parents and cycles are emitted individually so multiple structural
+ * problems can be diagnosed in a single run. Validation exceptions are not
+ * swallowed because they indicate bugs in the registry or validator itself.
+ *
  * @author Brian Faust <brian@cline.sh>
  */
 final class ValidateBreadcrumbDefinitionsCommand extends Command
@@ -34,7 +45,11 @@ final class ValidateBreadcrumbDefinitionsCommand extends Command
     }
 
     /**
-     * Execute the command.
+     * Validate the current definition graph and print all discovered problems.
+     *
+     * Returns `SUCCESS` only when the validator reports a fully consistent
+     * graph. Each missing parent edge and cycle path is written to the error
+     * output before the command exits with `FAILURE`.
      *
      * @return self::FAILURE|self::SUCCESS
      */

@@ -12,7 +12,16 @@ namespace Cline\Breadcrumbs\Core;
 use Cline\Breadcrumbs\Contracts\ArrayableBreadcrumbItem;
 
 /**
- * Immutable value object representing a breadcrumb item.
+ * Immutable value object for one rendered breadcrumb node.
+ *
+ * A breadcrumb item is the stable handoff format between the mutable build
+ * phase and downstream serializers or views. It stores the user-facing label,
+ * optional destination URL, current-page marker, and auxiliary metadata needed
+ * by custom renderers without exposing any mutation APIs.
+ *
+ * The item does not infer whether it is current on its own. That responsibility
+ * belongs to `BreadcrumbTrail`, which normalizes the final element after the
+ * full ordered list has been assembled.
  *
  * @phpstan-type BreadcrumbItemPayload array{
  *     label: string,
@@ -29,6 +38,8 @@ use Cline\Breadcrumbs\Contracts\ArrayableBreadcrumbItem;
 final readonly class BreadcrumbItem implements ArrayableBreadcrumbItem
 {
     /**
+     * Create a new immutable breadcrumb item.
+     *
      * @param array<string, mixed>  $meta
      * @param array<string, string> $attributes
      */
@@ -41,7 +52,7 @@ final readonly class BreadcrumbItem implements ArrayableBreadcrumbItem
     ) {}
 
     /**
-     * Get the breadcrumb label.
+     * Return the human-readable label that should be rendered for this item.
      */
     public function label(): string
     {
@@ -49,7 +60,10 @@ final readonly class BreadcrumbItem implements ArrayableBreadcrumbItem
     }
 
     /**
-     * Get the breadcrumb URL.
+     * Return the navigation target for this item, if it is linkable.
+     *
+     * `null` indicates a non-link breadcrumb, which is common for the current
+     * page or for display-only intermediate nodes.
      */
     public function url(): ?string
     {
@@ -57,7 +71,7 @@ final readonly class BreadcrumbItem implements ArrayableBreadcrumbItem
     }
 
     /**
-     * Determine whether this item is the current breadcrumb.
+     * Determine whether this item represents the terminal current page.
      */
     public function isCurrent(): bool
     {
@@ -65,6 +79,11 @@ final readonly class BreadcrumbItem implements ArrayableBreadcrumbItem
     }
 
     /**
+     * Return renderer-specific metadata attached during trail building.
+     *
+     * The package does not interpret these values, but they are preserved in
+     * array serialization so higher-level integrations can.
+     *
      * @return array<string, mixed>
      */
     public function meta(): array
@@ -73,6 +92,11 @@ final readonly class BreadcrumbItem implements ArrayableBreadcrumbItem
     }
 
     /**
+     * Return HTML or transport attributes associated with this item.
+     *
+     * Values are constrained to strings so the payload can be forwarded to
+     * templating layers without additional normalization.
+     *
      * @return array<string, string>
      */
     public function attributes(): array
@@ -81,7 +105,10 @@ final readonly class BreadcrumbItem implements ArrayableBreadcrumbItem
     }
 
     /**
-     * Return a copy with the current-item state updated.
+     * Clone the item with a different current-page marker.
+     *
+     * This is used by `BreadcrumbTrail` during finalization so current-state
+     * normalization does not require mutating items gathered by the builder.
      */
     public function withCurrent(bool $current = true): self
     {
@@ -89,6 +116,11 @@ final readonly class BreadcrumbItem implements ArrayableBreadcrumbItem
     }
 
     /**
+     * Serialize the item into the package's canonical item payload shape.
+     *
+     * The array keys are intentionally stable because `BreadcrumbTrail` and
+     * serializer implementations may rely on them as an integration contract.
+     *
      * @return BreadcrumbItemPayload
      */
     public function toArray(): array

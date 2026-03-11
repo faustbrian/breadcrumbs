@@ -18,7 +18,13 @@ use function in_array;
 use function throw_if;
 
 /**
- * Builds breadcrumb trails by recursively resolving parent definitions.
+ * Recursively expands breadcrumb definitions into a complete ordered trail.
+ *
+ * This is the core lifecycle step between a {@see BreadcrumbContext} and the
+ * final immutable {@see BreadcrumbTrail}. It is responsible for enforcing
+ * parent-before-child ordering, carrying context parameters into nested parent
+ * lookups, and rejecting cyclic definition graphs before they can recurse
+ * indefinitely.
  *
  * @psalm-immutable
  * @author Brian Faust <brian@cline.sh>
@@ -31,7 +37,11 @@ final readonly class TrailResolver
     ) {}
 
     /**
-     * Resolve a breadcrumb trail for the given context.
+     * Resolve a context into its final immutable trail representation.
+     *
+     * The returned trail contains every parent item followed by the current
+     * definition's own items. Missing definitions and detected cycles are
+     * surfaced as exceptions rather than being ignored.
      *
      * @throws BreadcrumbCycleDetectedException
      * @throws MissingBreadcrumbDefinitionException
@@ -43,6 +53,13 @@ final readonly class TrailResolver
 
     /**
      * @param list<string> $stack
+     *
+     * Recursively resolve a single definition and any parents it references.
+     *
+     * The `$stack` tracks the active resolution chain in call order so cycle
+     * detection can report the full breadcrumb path that led to the loop. When
+     * a definition requests a parent without explicit parameters, the current
+     * context parameters are inherited unchanged.
      *
      * @throws BreadcrumbCycleDetectedException
      * @throws MissingBreadcrumbDefinitionException

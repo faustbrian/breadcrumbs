@@ -17,7 +17,13 @@ use Illuminate\Routing\Router;
 use function throw_if;
 
 /**
- * Resolves the current route into a breadcrumb context.
+ * Converts the active Laravel route into the package's breadcrumb context.
+ *
+ * This resolver sits at the boundary between the router and breadcrumb
+ * resolution. It snapshots the current route name together with normalized
+ * route parameters so downstream trail resolution can operate on a stable
+ * {@see BreadcrumbContext} value object instead of depending directly on the
+ * router at every step.
  *
  * @psalm-immutable
  * @author Brian Faust <brian@cline.sh>
@@ -30,10 +36,16 @@ final readonly class RouteContextResolver
     ) {}
 
     /**
-     * Resolve current route name and parameters for breadcrumb processing.
+     * Resolve the current route into a breadcrumb context.
+     *
+     * The route name is mandatory because the package uses it as the lookup key
+     * for definitions. If the router has no current route or the route is
+     * unnamed, resolution stops immediately instead of guessing a fallback.
+     * Parameters are normalized through {@see BreadcrumbParamResolver} so
+     * implicit model bindings and route values reach definitions in a consistent
+     * shape.
      *
      * @throws MissingCurrentRouteNameException
-     * @return BreadcrumbContext                Context using current route name and parameters.
      */
     public function resolve(): BreadcrumbContext
     {

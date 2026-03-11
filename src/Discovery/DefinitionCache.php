@@ -23,7 +23,12 @@ use function unlink;
 use function var_export;
 
 /**
- * Persists and clears cached breadcrumb definition class names.
+ * File-backed cache for resolved breadcrumb definition class names.
+ *
+ * This cache sits between expensive discovery and registry construction. It
+ * stores the final ordered list of definition classes as executable PHP so a
+ * warm cache can be loaded with a simple `require`, avoiding repeated classmap
+ * scanning and PSR-4 traversal during application boot.
  *
  * @psalm-immutable
  * @author Brian Faust <brian@cline.sh>
@@ -32,7 +37,11 @@ use function var_export;
 final readonly class DefinitionCache
 {
     /**
-     * Load cached definition classes from disk.
+     * Load a previously written definition list from the cache file.
+     *
+     * Invalid cache contents are treated the same as a cache miss. The caller
+     * receives `null` when the file is absent or when it does not evaluate to
+     * an array payload, allowing discovery to proceed without partial state.
      *
      * @return null|list<class-string>
      */
@@ -55,7 +64,11 @@ final readonly class DefinitionCache
     /**
      * @param list<class-string> $definitions
      *
-     * Store resolved definition classes in the configured cache file.
+     * Persist the resolved class list as a PHP return file.
+     *
+     * The parent directory is created on demand. Failure to create that
+     * directory is escalated as a package exception because cache warm-up cannot
+     * continue safely without a writable destination.
      *
      * @throws UnableToCreateBreadcrumbCacheDirectoryException
      */
@@ -74,6 +87,9 @@ final readonly class DefinitionCache
 
     /**
      * Remove the cache file when present.
+     *
+     * A missing file is not considered an error and returns `false`, which lets
+     * callers distinguish "nothing to clear" from a successful deletion.
      *
      * @return bool True when the cache file existed and was deleted.
      */
